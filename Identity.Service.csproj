@@ -5,6 +5,12 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>1134e25b-9020-455e-9e1a-0f8bd1877db8</UserSecretsId>
+	<PackageDescription>Sample Microservice Shop Identity microservice.</PackageDescription>
+	<Authors>MH Karami</Authors>
+	<Company>SampleMicroserviceShop</Company>
+	<RepositoryUrl>
+	  https://github.com/SampleMicroserviceShop/Identity.Service
+	</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
