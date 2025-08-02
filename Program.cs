@@ -101,6 +101,11 @@ app.UseAuthorization();
 
 app.UseIdentityServer();
 
+app.UseCookiePolicy(new CookiePolicyOptions()
+{
+    MinimumSameSitePolicy = SameSiteMode.Lax
+});
+
 app.MapControllers();
 app.MapRazorPages();
 
