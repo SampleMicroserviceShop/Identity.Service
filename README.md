@@ -32,3 +32,9 @@ $env:GH_OWNER="SampleMicroserviceShop"
 $env:GH_PAT="[PAT HERE]"
 docker build --secret id=GH_OWNER --secret id=GH_PAT -t identity.service:$version .
 ```
+
+## Run the docker image
+```powershell
+$adminPass="[PASSWORD HERE]"
+docker run -it --rm -p 5002:5002 --name identity -e MongoDbSettings__Host=mongo -e RabbitMQSettings__Port=5672 -e RabbitMQSettings__Host=rabbitmq -e IdentitySettings__AdminUserPassword=$adminPass --network infra_default identity.service:$version
+```

@@ -6,6 +6,8 @@ USER $APP_UID
 WORKDIR /app
 EXPOSE 5002
 
+ENV ASPNETCORE_URLS=http://+:5002
+
 
 # This stage is used to build the service project
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
