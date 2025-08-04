@@ -8,6 +8,7 @@ using Identity.Service.Exceptions;
 using Identity.Service.Settings;
 using Identity.Service.HostedServices;
 using GreenPipes;
+using System.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,12 +38,14 @@ builder.Services
         serviceSettings.ServiceName
     );
 
-builder.Services.AddMassTransitWithRabbitMq(retryConfigurator =>
+
+builder.Services.AddMassTransitWithMessageBroker(builder.Configuration, retryConfigurator =>
 {
     retryConfigurator.Interval(3, TimeSpan.FromSeconds(5));
     retryConfigurator.Ignore(typeof(UnknownUserException));
     retryConfigurator.Ignore(typeof(InsufficientFundsException));
 });
+
 
 
 builder.Services.AddIdentityServer(options =>
