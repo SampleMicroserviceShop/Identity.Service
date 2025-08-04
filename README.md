@@ -1,4 +1,4 @@
-## Identity.Microservice
+# Identity.Microservice
 Sample Microservice Shop Identity microservice.
 
 ## General Variables
@@ -10,6 +10,7 @@ $gh_pat="[PAT HERE]"
 $adminPass="[PASSWORD HERE]"
 $cosmosDbConnString="[CONN STRING HERE]"
 $serviceBusConnString="[CONN STRING HERE]"
+$appname="MicroserviceShop"
 ```
 
 ## Create and publish package
@@ -38,6 +39,10 @@ $env:GH_OWNER="SampleMicroserviceShop"
 $env:GH_PAT="[PAT HERE]"
 docker build --secret id=GH_OWNER --secret id=GH_PAT -t identity.service:$version .
 ```
+or with Azure Container Registry tag
+```
+docker build --secret id=GH_OWNER --secret id=GH_PAT -t "$appname.azurecr.io/identity.service:$version"
+```
 
 ## Run the docker image
 ```powershell
@@ -53,3 +58,16 @@ docker run -it --rm -p 5002:5002 --name identity -e MongoDbSettings__ConnectionS
 ServiceBusSettings__ConnectionString=$serviceBusConnString -e ServiceSettings__MessageBroker="SERVICEBUS" -e \
 IdentitySettings__AdminUserPassword=$adminPass --network infra_default identity.service:$version
 ```
+
+## Retag docker image to publish to Azure Container Registry
+```powershell
+docker tag identity.service:$version "$appname.azurecr.io/identity.service:$version"
+```
+
+## Publish the docker image to Azure Container Registry
+```powershell
+az acr login --name $appname
+docker push "$appname.azurecr.io/identity.service:$version"
+```
+
+
