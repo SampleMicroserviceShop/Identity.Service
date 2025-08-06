@@ -11,6 +11,7 @@ $adminPass="[PASSWORD HERE]"
 $cosmosDbConnString="[CONN STRING HERE]"
 $serviceBusConnString="[CONN STRING HERE]"
 $appname="MicroserviceShop"
+$namespace="identity"
 ```
 
 ## Create and publish package
@@ -69,5 +70,17 @@ docker tag identity.service:$version "$appname.azurecr.io/identity.service:$vers
 az acr login --name $appname
 docker push "$appname.azurecr.io/identity.service:$version"
 ```
+
+## Create the Kubernetes namespace
+```powershell
+kubectl create namespace $namespace
+```
+
+## Create the Kubernetes secrets
+```powershell
+kubectl create secret generic identity-secrets --from-literal=cosmosdbconnectionstring=$cosmosDbConnString --from-literal=servicebusconnectionstring=$serviceBusConnString --from-literal=admin-password=$adminPass -n $namespace
+```
+
+
 
 
