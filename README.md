@@ -78,9 +78,16 @@ kubectl create namespace $namespace
 
 ## Create the Kubernetes secrets
 ```powershell
-kubectl create secret generic identity-secrets --from-literal=cosmosdbconnectionstring=$cosmosDbConnString --from-literal=servicebusconnectionstring=$serviceBusConnString --from-literal=admin-password=$adminPass -n $namespace
+kubectl create secret generic identity-secrets --from-literal=cosmosdb-connectionstring=$cosmosDbConnString --from-literal=servicebus-connectionstring=$serviceBusConnString --from-literal=admin-password=$adminPass -n $namespace
 kubectl get secrets -n $namespace
 ```
+
+## Create the Kubernetes pod
+```powershell
+kubectl apply -f .\kubernetes\$namespace.yaml -n $namespace
+kubectl get pods -n $namespace
+```
+
 
 
 
