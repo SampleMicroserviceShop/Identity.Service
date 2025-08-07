@@ -10,7 +10,7 @@ $gh_pat="[PAT HERE]"
 $adminPass="[PASSWORD HERE]"
 $cosmosDbConnString="[CONN STRING HERE]"
 $serviceBusConnString="[CONN STRING HERE]"
-$appname="MicroserviceShop"
+$appname="microshop"
 $namespace="identity"
 ```
 
@@ -57,7 +57,7 @@ docker run -it --rm -p 5002:5002 --name identity -e MongoDbSettings__ConnectionS
 ```powershell
 docker run -it --rm -p 5002:5002 --name identity -e MongoDbSettings__ConnectionString=$cosmosDbConnString -e \
 ServiceBusSettings__ConnectionString=$serviceBusConnString -e ServiceSettings__MessageBroker="SERVICEBUS" -e \
-IdentitySettings__AdminUserPassword=$adminPass --network infra_default identity.service:$version
+IdentitySettings__AdminUserPassword=$adminPass identity.service:$version
 ```
 
 ## Retag docker image to publish to Azure Container Registry
@@ -79,6 +79,7 @@ kubectl create namespace $namespace
 ## Create the Kubernetes secrets
 ```powershell
 kubectl create secret generic identity-secrets --from-literal=cosmosdbconnectionstring=$cosmosDbConnString --from-literal=servicebusconnectionstring=$serviceBusConnString --from-literal=admin-password=$adminPass -n $namespace
+kubectl get secrets -n $namespace
 ```
 
 
