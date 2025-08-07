@@ -77,6 +77,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers();
 builder.Services.AddHostedService<IdentitySeedHostedService>();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHealthChecks();
 
 
 
@@ -119,5 +120,6 @@ app.UseIdentityServer();
 
 app.MapControllers();
 app.MapRazorPages();
+app.MapHealthChecks("/health");
 
 app.Run();
