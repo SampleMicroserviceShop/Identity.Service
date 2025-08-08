@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="AspNetCore.Identity.MongoDbCore" Version="6.0.0" />
-    <PackageReference Include="Common.library" Version="1.0.8" />
+    <PackageReference Include="Common.library" Version="1.0.11" />
     <PackageReference Include="duende.IdentityServer" Version="7.2.4" />
     <PackageReference Include="duende.IdentityServer.AspNetIdentity" Version="7.2.4" />
     <PackageReference Include="Identity.Contracts" Version="1.0.2" />
@@ -36,5 +36,4 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.3" />
 
   </ItemGroup>
-
 </Project>
