@@ -3,7 +3,7 @@ Sample Microservice Shop Identity microservice.
 
 ## General Variables
 ```powershell
-$version="1.0.4"
+$version="1.0.5"
 $contracts_version="1.0.2"
 $owner="SampleMicroserviceShop"
 $gh_pat="[PAT HERE]"
@@ -42,7 +42,7 @@ docker build --secret id=GH_OWNER --secret id=GH_PAT -t identity.service:$versio
 ```
 or with Azure Container Registry tag
 ```
-docker build --secret id=GH_OWNER --secret id=GH_PAT -t "$appname.azurecr.io/identity.service:$version"
+docker build --secret id=GH_OWNER --secret id=GH_PAT -t "$appname.azurecr.io/identity.service:$version" .
 ```
 
 ## Run the docker image
@@ -86,6 +86,11 @@ kubectl get secrets -n $namespace
 ```powershell
 kubectl apply -f .\kubernetes\$namespace.yaml -n $namespace
 kubectl get pods -n $namespace
+```
+
+## Get AKS 
+```powershell
+kubectl get services -n $namespace
 ```
 
 

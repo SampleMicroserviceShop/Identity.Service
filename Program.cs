@@ -9,6 +9,10 @@ using Identity.Service.Settings;
 using Identity.Service.HostedServices;
 using GreenPipes;
 using System.Configuration;
+using Identity.Service.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using MongoDB.Driver;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -77,7 +81,19 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers();
 builder.Services.AddHostedService<IdentitySeedHostedService>();
 builder.Services.AddSwaggerGen();
-builder.Services.AddHealthChecks();
+builder.Services.AddHealthChecks()
+    .Add(new HealthCheckRegistration(
+        "mongodb",
+        serviceProvider =>
+        {
+            var mongoClient = new MongoClient(mongoDbSettings.ConnectionString);
+            return new MongoDbHealthCheck(mongoClient);
+        },
+        HealthStatus.Unhealthy,
+        new[] { "ready" },
+        TimeSpan.FromSeconds(3)
+        )
+    );
 
 
 
@@ -120,6 +136,14 @@ app.UseIdentityServer();
 
 app.MapControllers();
 app.MapRazorPages();
-app.MapHealthChecks("/health");
+app.MapHealthChecks($"/health/ready", new HealthCheckOptions()
+{
+    Predicate = (check) => check.Tags.Contains("ready"),
+});
+app.MapHealthChecks($"/health/live", new HealthCheckOptions()
+{
+    Predicate = (_) => false
+});
+
 
 app.Run();
