@@ -10,10 +10,12 @@ spec:
     metadata:
       labels:
         app: identity
+        azure.workload.identity/use: "true"
     spec:
+      serviceAccountName: identity-serviceaccount
       containers:
       - name: identity
-        image: microshop.azurecr.io/identity.service:1.0.5
+        image: microshop.azurecr.io/identity.service:1.0.6
         env:
           - name: ServiceSettings__MessageBroker
             value: SERVICEBUS
@@ -62,3 +64,14 @@ spec:
   ports:
     - port: 80
       targetPort: 5002
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  annotations:
+    azure.workload.identity/client-id: 12e3b28a-ca9b-4e24-ae54-3dcae90efa0d
+  labels:
+    azure.workload.identity/use: "true"
+  name: identity-serviceaccount
+
