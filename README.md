@@ -3,7 +3,7 @@ Sample Microservice Shop Identity microservice.
 
 ## General Variables
 ```powershell
-$version="1.0.5"
+$version="1.0.6"
 $contracts_version="1.0.2"
 $owner="SampleMicroserviceShop"
 $gh_pat="[PAT HERE]"
@@ -49,11 +49,11 @@ docker build --secret id=GH_OWNER --secret id=GH_PAT -t "$appname.azurecr.io/ide
 ```powershell
 docker run -it --rm -p 5002:5002 --name identity -e MongoDbSettings__Host=mongo -e RabbitMQSettings__Host=rabbitmq -e IdentitySettings__AdminUserPassword=$adminPass --network infra_default identity.service:$version
 ```
-# Run the docker image - using CosmosDB ConnectionString:
+Run the docker image - using CosmosDB ConnectionString:
 ```powershell
 docker run -it --rm -p 5002:5002 --name identity -e MongoDbSettings__ConnectionString=$cosmosDbConnString -e RabbitMQSettings__Host=rabbitmq -e IdentitySettings__AdminUserPassword=$adminPass --network infra_default identity.service:$version
 ```
-## Run the docker image - using ServiceBus ConnectionString
+Run the docker image - using ServiceBus ConnectionString
 ```powershell
 docker run -it --rm -p 5002:5002 --name identity -e MongoDbSettings__ConnectionString=$cosmosDbConnString -e \
 ServiceBusSettings__ConnectionString=$serviceBusConnString -e ServiceSettings__MessageBroker="SERVICEBUS" -e \

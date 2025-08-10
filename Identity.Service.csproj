@@ -17,6 +17,8 @@
 
   <ItemGroup>
     <PackageReference Include="AspNetCore.Identity.MongoDbCore" Version="6.0.0" />
+    <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.4.0" />
+    <PackageReference Include="Azure.Identity" Version="1.14.2" />
     <PackageReference Include="Common.library" Version="1.0.11" />
     <PackageReference Include="duende.IdentityServer" Version="7.2.4" />
     <PackageReference Include="duende.IdentityServer.AspNetIdentity" Version="7.2.4" />

@@ -9,8 +9,11 @@ using Identity.Service.Settings;
 using Identity.Service.HostedServices;
 using GreenPipes;
 using Common.Library.HealthChecks;
+using Identity.Service;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration.AddAzureKeyVaultIfProduction(builder.Environment);
 
 
 const string AllowedOriginSetting = "AllowedOrigin";
