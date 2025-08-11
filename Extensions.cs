@@ -10,14 +10,4 @@ public static class Extensions
     {
         return new UserDto(user.Id, user.UserName, user.Email, user.Gil, user.CreatedOn);
     }
-
-    public static void AddAzureKeyVaultIfProduction(this ConfigurationManager configuration, IWebHostEnvironment env)
-    {
-        if (env.IsProduction())
-        {
-            configuration.AddAzureKeyVault(
-                new Uri("https://microshop.vault.azure.net/"),
-                new DefaultAzureCredential());
-        }
-    }
 }

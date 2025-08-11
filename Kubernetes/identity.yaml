@@ -15,10 +15,12 @@ spec:
       serviceAccountName: identity-serviceaccount
       containers:
       - name: identity
-        image: microshop.azurecr.io/identity.service:1.0.6
+        image: microshop.azurecr.io/identity.service:1.0.7
         env:
           - name: ServiceSettings__MessageBroker
             value: SERVICEBUS
+          - name: ServiceSettings__KeyVaultName
+            value: microshop
         resources:
           limits:
             memory: "128Mi"

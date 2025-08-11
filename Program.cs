@@ -1,3 +1,4 @@
+using Common.Library.Configuration;
 using Common.Library.MassTransit;
 using Identity.Service.Entities;
 using MongoDB.Bson.Serialization.Serializers;
@@ -13,7 +14,7 @@ using Identity.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Configuration.AddAzureKeyVaultIfProduction(builder.Environment);
+builder.Configuration.ConfigureAzureKeyVault(builder.Environment);
 
 
 const string AllowedOriginSetting = "AllowedOrigin";
