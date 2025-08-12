@@ -15,7 +15,7 @@ spec:
       serviceAccountName: identity-serviceaccount
       containers:
       - name: identity
-        image: microshop.azurecr.io/identity.service:1.0.8
+        image: microshop.azurecr.io/identity.service:1.0.9
         env:
           - name: ServiceSettings__MessageBroker
             value: SERVICEBUS

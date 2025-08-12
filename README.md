@@ -3,7 +3,7 @@ Sample Microservice Shop Identity microservice.
 
 ## General Variables
 ```powershell
-$version="1.0.8"
+$version="1.0.9"
 $contracts_version="1.0.2"
 $owner="SampleMicroserviceShop"
 $gh_pat="[PAT HERE]"
