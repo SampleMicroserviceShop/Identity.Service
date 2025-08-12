@@ -116,6 +116,13 @@ if (app.Environment.IsDevelopment() || app.Environment.IsStaging() || app.Enviro
     app.UseSwaggerUI();
 }
 
+app.Use((context, next) =>
+{
+    var identitySettings =
+        builder.Configuration.GetSection(nameof(IdentitySettings)).Get<IdentitySettings>();
+    context.Request.PathBase = new PathString(identitySettings.PathBase);
+    return next();
+});
 
 app.UseStaticFiles();
 
