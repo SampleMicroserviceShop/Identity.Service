@@ -15,7 +15,7 @@ spec:
       serviceAccountName: identity-serviceaccount
       containers:
       - name: identity
-        image: microshop.azurecr.io/identity.service:1.0.9
+        image: microshop.azurecr.io/identity.service:1.0.12
         env:
           - name: ServiceSettings__MessageBroker
             value: SERVICEBUS
@@ -27,6 +27,8 @@ spec:
             value: "/certificates/certificate.crt"
           - name: IdentitySettings__CertificateKeyFilePath
             value: "/certificates/certificate.key"
+          - name: ServiceSettings__Authority
+            value: https://microshop.westus2.cloudapp.azure.com/identity-svc
         resources:
           limits:
             memory: "128Mi"

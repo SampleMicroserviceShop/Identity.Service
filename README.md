@@ -3,7 +3,7 @@ Sample Microservice Shop Identity microservice.
 
 ## General Variables
 ```powershell
-$version="1.0.9"
+$version="1.0.13"
 $contracts_version="1.0.2"
 $owner="SampleMicroserviceShop"
 $gh_pat="[PAT HERE]"
@@ -84,7 +84,7 @@ kubectl get secrets -n $namespace
 
 ## Create the Kubernetes pod
 ```powershell
-kubectl apply -f .\kubernetes\$namespace.yaml -n $namespace
+kubectl apply -f .\Kubernetes\$namespace.yaml -n $namespace
 kubectl get pods -n $namespace
 ```
 
@@ -99,7 +99,8 @@ az identity create --resource-group $appname --name $namespace
 
 $IDENTITY_CLIENT_ID = az identity show -g $appname -n $namespace --query clientId -otsv
 
-az keyvault set-policy -n $appname --secret-permissions get list --spn $IDENTITY_CLIENT_ID
+$Object_Id = az ad sp show --id $IDENTITY_CLIENT_ID --query id -o tsv
+az role assignment create --assignee $Object_Id --role "Key Vault Secrets User" --scope $(az keyvault show -n $appname --query id -o tsv)
 ```
 
 ## Establish the federated identity credential

@@ -1,3 +1,4 @@
+using System.Security.Cryptography.X509Certificates;
 using Common.Library.Configuration;
 using Common.Library.MassTransit;
 using Identity.Service.Entities;
@@ -12,6 +13,7 @@ using GreenPipes;
 using Common.Library.HealthChecks;
 using Identity.Service;
 using Microsoft.AspNetCore.HttpOverrides;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,8 +32,6 @@ BsonSerializer.RegisterSerializer(new GuidSerializer(GuidRepresentation.Standard
 
 var serviceSettings = builder.Configuration.GetSection(nameof(ServiceSettings)).Get<ServiceSettings>();
 var mongoDbSettings = builder.Configuration.GetSection(nameof(MongoDbSettings)).Get<MongoDbSettings>();
-var identityServerSettings =
-    builder.Configuration.GetSection(nameof(IdentityServerSettings)).Get<IdentityServerSettings>();
 
 builder.Services
     .Configure<IdentitySettings>(builder.Configuration.GetSection(nameof(IdentitySettings)))
@@ -53,20 +53,7 @@ builder.Services.AddMassTransitWithMessageBroker(builder.Configuration, retryCon
 
 
 
-builder.Services.AddIdentityServer(options =>
-    {
-        options.Events.RaiseSuccessEvents = true;
-        options.Events.RaiseFailureEvents = true;
-        options.Events.RaiseErrorEvents = true;
-
-        options.KeyManagement.Enabled = false;
-    })
-    .AddAspNetIdentity<ApplicationUser>()
-    .AddInMemoryApiScopes(identityServerSettings.ApiScopes)
-    .AddInMemoryApiResources(identityServerSettings.ApiResources)
-    .AddInMemoryClients(identityServerSettings.Clients)
-    .AddInMemoryIdentityResources(identityServerSettings.IdentityResources)
-    .AddDeveloperSigningCredential();
+AddIdentityServer(builder);
 
 builder.Services.AddLocalApiAuthentication();
 
@@ -119,18 +106,7 @@ if (app.Environment.IsDevelopment())
 }
 
 
-//app.UseHttpsRedirection();
-app.UseCookiePolicy(new CookiePolicyOptions
-{
-    MinimumSameSitePolicy = SameSiteMode.Lax
-});
-
-if (app.Environment.IsDevelopment() || app.Environment.IsStaging() || app.Environment.IsProduction())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
+app.UseHttpsRedirection();
 app.Use((context, next) =>
 {
     var identitySettings =
@@ -139,11 +115,27 @@ app.Use((context, next) =>
     return next();
 });
 
+
+if (app.Environment.IsDevelopment() || app.Environment.IsStaging() || app.Environment.IsProduction())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+
+
 app.UseStaticFiles();
+
+app.UseRouting();
 
 app.UseAuthorization();
 
 app.UseIdentityServer();
+
+app.UseCookiePolicy(new CookiePolicyOptions
+{
+    MinimumSameSitePolicy = SameSiteMode.Lax
+});
 
 app.MapControllers();
 app.MapRazorPages();
@@ -151,3 +143,39 @@ app.MapCustomHealthChecks();
 
 
 app.Run();
+
+void AddIdentityServer(WebApplicationBuilder webApplicationBuilder)
+{
+    var identityServerSettings =
+        webApplicationBuilder.Configuration.GetSection(nameof(IdentityServerSettings)).Get<IdentityServerSettings>();
+    var serverSettings =
+    builder.Configuration.GetSection(nameof(ServiceSettings)).Get<ServiceSettings>();
+    var _builder = webApplicationBuilder.Services.AddIdentityServer(options =>
+        {
+            options.Events.RaiseSuccessEvents = true;
+            options.Events.RaiseFailureEvents = true;
+            options.Events.RaiseErrorEvents = true;
+            options.KeyManagement.KeyPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+            options.IssuerUri = serverSettings.Authority;
+            //options.KeyManagement.Enabled = false;
+        })
+        .AddAspNetIdentity<ApplicationUser>()
+        .AddInMemoryApiScopes(identityServerSettings.ApiScopes)
+        .AddInMemoryApiResources(identityServerSettings.ApiResources)
+        .AddInMemoryClients(identityServerSettings.Clients)
+        .AddInMemoryIdentityResources(identityServerSettings.IdentityResources);
+
+    if (webApplicationBuilder.Environment.IsDevelopment())
+    {
+        _builder.AddDeveloperSigningCredential();
+    }
+    else
+    {
+        var identitySettings =
+            webApplicationBuilder.Configuration.GetSection(nameof(IdentitySettings)).Get<IdentitySettings>();
+        var cert = X509Certificate2.CreateFromPemFile(
+            identitySettings.CertificateCerFilePath,
+            identitySettings.CertificateKeyFilePath);
+        _builder.AddSigningCredential(cert);
+    }
+}
