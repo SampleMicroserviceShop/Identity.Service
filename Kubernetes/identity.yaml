@@ -13,9 +13,15 @@ spec:
         azure.workload.identity/use: "true"
     spec:
       serviceAccountName: identity-serviceaccount
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+        runAsGroup: 1000
+        runAsNonRoot: true
+
       containers:
       - name: identity
-        image: microshop.azurecr.io/identity.service:1.0.12
+        image: microshop.azurecr.io/identity.service:1.0.27
         env:
           - name: ServiceSettings__MessageBroker
             value: SERVICEBUS
@@ -29,6 +35,15 @@ spec:
             value: "/certificates/certificate.key"
           - name: ServiceSettings__Authority
             value: https://microshop.westus2.cloudapp.azure.com/identity-svc
+          - name: IdentityServerSettings__Clients__0__RedirectUris__0
+            value: "https://microshop.westus2.cloudapp.azure.com/authentication/login-callback"
+          - name: IdentityServerSettings__Clients__0__RedirectUris__1
+            value: "urn:ietf:wg:oauth:2.0:oob"
+          - name: IdentityServerSettings__Clients__1__RedirectUris__0
+            value: "https://microshop.westus2.cloudapp.azure.com/authentication/login-callback"
+          - name: IdentityServerSettings__Clients__1__PostLogoutRedirectUris__0
+            value: "https://microshop.westus2.cloudapp.azure.com/authentication/logout-callback"
+
         resources:
           limits:
             memory: "128Mi"
@@ -40,14 +55,18 @@ spec:
             path: /health/live
             port: 5002
           initialDelaySeconds: 10
+          timeoutSeconds: 5
         readinessProbe:
           httpGet:
             path: /health/ready
             port: 5002
           initialDelaySeconds: 10
+          timeoutSeconds: 5
         volumeMounts:
           - name: certificate-volume
             mountPath: /certificates
+          - name: dataprotection-volume
+            mountPath: /app/keys
       volumes:
         - name: certificate-volume
           secret:
@@ -57,7 +76,9 @@ spec:
                 path: certificate.key
               - key: tls.crt
                 path: certificate.crt
-
+        - name: dataprotection-volume
+          persistentVolumeClaim:
+            claimName: identity-dataprotection-pvc
   
 ---
 apiVersion: v1

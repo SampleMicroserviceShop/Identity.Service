@@ -3,7 +3,7 @@ Sample Microservice Shop Identity microservice.
 
 ## General Variables
 ```powershell
-$version="1.0.13"
+$version="1.0.28"
 $contracts_version="1.0.2"
 $owner="SampleMicroserviceShop"
 $gh_pat="[PAT HERE]"
@@ -85,7 +85,14 @@ kubectl get secrets -n $namespace
 ## Create the Kubernetes pod
 ```powershell
 kubectl apply -f .\Kubernetes\$namespace.yaml -n $namespace
-kubectl get pods -n $namespace
+```
+other useful commands
+```powershell
+kubectl rollout restart deployment/identity-deployment -n identity
+kubectl get pods -n $namespace -w
+kubectl get services -n $namespace
+kubectl logs [POD_NAME] -n $namespace -c $namespace
+kubectl delete pod [POD_NAME] -n $namespace
 ```
 
 ## Get AKS 

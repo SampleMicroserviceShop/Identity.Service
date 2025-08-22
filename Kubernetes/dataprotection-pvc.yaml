@@ -1,0 +1,12 @@
+﻿apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: identity-dataprotection-pvc
+  namespace: identity
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: default
