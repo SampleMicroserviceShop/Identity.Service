@@ -5,8 +5,6 @@ image:
   tag: 1.0.27
 
 envVariables:
-  ServiceSettings__MessageBroker : SERVICEBUS
-  ServiceSettings__KeyVaultName : microshop
   IdentitySettings__PathBase : /identity-svc
   IdentitySettings__CertificateCerFilePath : "/certificates/certificate.crt"
   IdentitySettings__CertificateKeyFilePath : "/certificates/certificate.key"
@@ -23,12 +21,6 @@ container:
       mountPath: /certificates  
     - name: dataprotection-volume
       mountPath: /app/keys
-  liveness:
-    path: /health/live
-    initialDelaySeconds: 10
-  readiness:
-    path: /health/ready
-    initialDelaySeconds: 10
 
 
 volumes:
@@ -40,16 +32,6 @@ volumes:
           path: certificate.key
         - key: tls.crt
           path: certificate.crt
-
-
-resources:
-  limits:
-    memory: "128Mi"
-    cpu: "150m"
-
-service:
-  type: ClusterIP
-  port: 80
 
 
 certificate:

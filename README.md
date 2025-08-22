@@ -135,9 +135,19 @@ kubectl delete serviceaccount "$namespace-serviceaccount" -n $namespace
 kubectl delete pvc "$namespace-dataprotection-pvc" -n identity
 ```
 
-## Install the helm chart
+## Install the helm chart without using package
 ```powershell
 helm install "$namespace-service" .\helm -f .\helm\values.yaml -n $namespace
+```
+
+## Install the helm chart using microservice helm chart package
+```powershell
+$helmUser=[guid]::Empty.Guid
+$helmPassword=$(az acr login --name $appname --expose-token --output tsv --query accessToken)
+$env:HELM_EXPERIMENTAL_OCI=1
+helm registry login "$appname.azurecr.io" --username $helmUser --password $helmPassword
+$chartVersion="0.1.0"
+helm upgrade "$namespace-service" oci://$appname.azurecr.io/helm/microservice --version $chartVersion -f .\helm\values.yaml -n $namespace --install
 ```
 useful commands:
 ```powershell
@@ -147,4 +157,5 @@ kubectl get services -n $namespace
 kubectl get certificates -n $namespace
 kubectl get serviceaccount -n $namespace
 kubectl get pvc -n $namespace
+helm repo update
 ```
