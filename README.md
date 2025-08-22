@@ -121,3 +121,30 @@ az identity federated-credential create --name $namespace --identity-name $names
 ```powershell
 kubectl apply -f .\Kubernetes\signing-cert.yaml -n $namespace
 ```
+
+
+## Migrating from raw YAML to Helm
+
+## Delete raw yaml files
+```powershell
+kubectl delete certificate signing-cert -n $namespace
+kubectl delete service "$namespace-service" -n $namespace
+kubectl delete deployment "$namespace-deployment" -n $namespace
+kubectl delete pvc dataprotection-pvc -n $namespace
+kubectl delete serviceaccount "$namespace-serviceaccount" -n $namespace
+kubectl delete pvc "$namespace-dataprotection-pvc" -n identity
+```
+
+## Install the helm chart
+```powershell
+helm install "$namespace-service" .\helm -f .\helm\values.yaml -n $namespace
+```
+useful commands:
+```powershell
+helm list -n $namespace
+kubectl get pods -n $namespace -w
+kubectl get services -n $namespace
+kubectl get certificates -n $namespace
+kubectl get serviceaccount -n $namespace
+kubectl get pvc -n $namespace
+```

@@ -1,0 +1,63 @@
+microserviceName: "identity"
+
+image:
+  repository: microshop.azurecr.io/identity.service
+  tag: 1.0.27
+
+envVariables:
+  ServiceSettings__MessageBroker : SERVICEBUS
+  ServiceSettings__KeyVaultName : microshop
+  IdentitySettings__PathBase : /identity-svc
+  IdentitySettings__CertificateCerFilePath : "/certificates/certificate.crt"
+  IdentitySettings__CertificateKeyFilePath : "/certificates/certificate.key"
+  ServiceSettings__Authority : https://microshop.westus2.cloudapp.azure.com/identity-svc
+  IdentityServerSettings__Clients__0__RedirectUris__0 : "https://microshop.westus2.cloudapp.azure.com/authentication/login-callback"
+  IdentityServerSettings__Clients__0__RedirectUris__1 : "urn:ietf:wg:oauth:2.0:oob"
+  IdentityServerSettings__Clients__1__RedirectUris__0 : "https://microshop.westus2.cloudapp.azure.com/authentication/login-callback"
+  IdentityServerSettings__Clients__1__PostLogoutRedirectUris__0 : "https://microshop.westus2.cloudapp.azure.com/authentication/logout-callback"
+
+container:
+  port: 5002
+  volumeMounts:
+    - name: certificate-volume
+      mountPath: /certificates  
+    - name: dataprotection-volume
+      mountPath: /app/keys
+  liveness:
+    path: /health/live
+    initialDelaySeconds: 10
+  readiness:
+    path: /health/ready
+    initialDelaySeconds: 10
+
+
+volumes:
+  - name: certificate-volume
+    secret:
+      secretName: signing-cert
+      items:
+        - key: tls.key
+          path: certificate.key
+        - key: tls.crt
+          path: certificate.crt
+
+
+resources:
+  limits:
+    memory: "128Mi"
+    cpu: "150m"
+
+service:
+  type: ClusterIP
+  port: 80
+
+
+certificate:
+  secretName: signing-cert
+  hostname: microshop.westus2.cloudapp.azure.com
+
+pvc:
+  resources:
+    storage : 1Gi
+
+identityClientId: 12e3b28a-ca9b-4e24-ae54-3dcae90efa0d

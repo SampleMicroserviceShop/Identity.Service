@@ -1,0 +1,15 @@
+﻿{{- if .Values.pvc }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: "{{.Values.microserviceName}}-dataprotection-pvc"
+  namespace: {{.Values.microserviceName}}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{.Values.pvc.resources.storage}}
+  storageClassName: default
+{{- end }}
+

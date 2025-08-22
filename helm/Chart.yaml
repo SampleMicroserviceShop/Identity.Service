@@ -1,0 +1,4 @@
+apiVersion: v2
+name: microservice
+description: Installs a SampleMicroserviceShop microservice
+version: 0.1.0
