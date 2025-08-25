@@ -68,7 +68,7 @@ jobs:
       with:
         secrets: |
           "GH_OWNER=${{github.repository_owner}}"
-          "GH_PAT=${{secrets.GH_PAT}}"
+          "GH_PAT=${{secrets.NUGETPACKAGEPUSH}}"
         tags: ${{env.APP_NAME}}.azurecr.io/play.identity:${{ needs.generate-version.outputs.new_version }}
         push: true
 
