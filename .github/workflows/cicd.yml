@@ -72,3 +72,26 @@ jobs:
         tags: ${{env.APP_NAME}}.azurecr.io/play.identity:${{ needs.generate-version.outputs.new_version }}
         push: true
 
+    - name: Helm tool installer
+      uses: Azure/setup-helm@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Login to Helm registry
+      run: |
+        helmUser="00000000-0000-0000-0000-000000000000"
+        helmPassword=$(az acr login --name ${{ env.APP_NAME }} --expose-token --output tsv --query accessToken)
+        helm registry login ${{ env.APP_NAME }}.azurecr.io --username $helmUser --password $helmPassword      
+        
+    - name: Deploy Helm chart
+      run: |
+        helm upgrade \
+        ${{env.SERVICE_NAME}}-service \
+        oci://${{ env.APP_NAME }}.azurecr.io/helm/microservice \
+        --version ${{env.HELM_CHART_VERSION}} \
+        -f helm/values.yaml \
+        -n ${{env.SERVICE_NAME}} \
+        --set image.tag=${{needs.generate-version.outputs.new_version}} \
+        --install \
+        --wait
+
