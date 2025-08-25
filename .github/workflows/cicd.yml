@@ -60,3 +60,15 @@ jobs:
         # Azure subscriptionId
         subscription-id: ${{secrets.AZURE_SUBSCRIPTION_ID}}
 
+    - name: Login to container registry
+      run: az acr login --name ${{ env.APP_NAME }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v3
+      with:
+        secrets: |
+          "GH_OWNER=${{github.repository_owner}}"
+          "GH_PAT=${{secrets.GH_PAT}}"
+        tags: ${{env.APP_NAME}}.azurecr.io/play.identity:${{ needs.generate-version.outputs.new_version }}
+        push: true
+
