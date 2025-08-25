@@ -54,3 +54,4 @@ jobs:
         tenant-id: ${{secrets.AZURE_TENANT_ID}}
         # Azure subscriptionId
         subscription-id: ${{secrets.AZURE_SUBSCRIPTION_ID}}
+        auth-type: federated
