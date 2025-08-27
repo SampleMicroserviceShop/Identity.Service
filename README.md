@@ -157,5 +157,13 @@ kubectl get services -n $namespace
 kubectl get certificates -n $namespace
 kubectl get serviceaccount -n $namespace
 kubectl get pvc -n $namespace
+kubectl get deployments -n $namespace
 helm repo update
 ```
+
+## Required repository secrets for GitHub workflow
+Repository Settings --> Secret and variables --> Actions --> New Repository Secret
+NuGetPackagePush : Created in GitHub user profile --> Settings --> Developer settings --> Personal access token
+AZURE_CLIENT_ID: From AAD App Registration
+AZURE_SUBSCRIPTION_ID: From Azure Portal subscription
+AZURE_TENANT_ID: From AAD properties page
