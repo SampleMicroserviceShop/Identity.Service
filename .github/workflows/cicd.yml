@@ -32,7 +32,7 @@ jobs:
     env:
       APP_NAME: microshop
       SERVICE_NAME: identity
-      HELM_CHART_VERSION: 0.1.2
+      HELM_CHART_VERSION: 0.1.4
       
     permissions:
       id-token: write
