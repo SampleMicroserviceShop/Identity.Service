@@ -9,15 +9,12 @@ using Common.Library.Settings;
 using Identity.Service.Exceptions;
 using Identity.Service.Settings;
 using Identity.Service.HostedServices;
-using GreenPipes;
 using Common.Library.HealthChecks;
-using Identity.Service;
+using Common.Library.Logging;
+using Common.Library.OpenTelemetry;
 using Microsoft.AspNetCore.HttpOverrides;
-using System.Reflection;
-using MassTransit.RabbitMqTransport.Topology;
-using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.DataProtection;
-using Azure.Identity;
+using MassTransit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,6 +55,8 @@ builder.Services.AddMassTransitWithMessageBroker(builder.Configuration, retryCon
     retryConfigurator.Ignore(typeof(InsufficientFundsException));
 });
 
+builder.Services.AddSeqLogging(builder.Configuration)
+    .AddTracing(builder.Configuration);
 
 
 AddIdentityServer(builder);
