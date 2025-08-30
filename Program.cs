@@ -112,11 +112,15 @@ app.UseOpenTelemetryPrometheusScrapingEndpoint();
 
 app.UseForwardedHeaders();
 
-
 app.UseHttpsRedirection();
 
 var identitySettings =
     builder.Configuration.GetSection(nameof(IdentitySettings)).Get<IdentitySettings>();
+
+// Log the configuration for debugging
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+logger.LogInformation("IdentitySettings PathBase: {PathBase}", identitySettings?.PathBase);
+logger.LogInformation("Environment: {Environment}", app.Environment.EnvironmentName);
 
 
 //app.Use(async (context, next) =>
@@ -149,7 +153,21 @@ var identitySettings =
 
 if (!string.IsNullOrEmpty(identitySettings?.PathBase))
 {
+    logger.LogInformation("Applying PathBase: {PathBase}", identitySettings.PathBase);
     app.UsePathBase(identitySettings.PathBase);
+    
+    // Add logging to verify PathBase is being applied
+    app.Use(async (context, next) =>
+    {
+        logger.LogInformation("Request PathBase: {RequestPathBase}", context.Request.PathBase);
+        logger.LogInformation("Request Path: {RequestPath}", context.Request.Path);
+        logger.LogInformation("Full URL: {FullUrl}", context.Request.GetDisplayUrl());
+        await next();
+    });
+}
+else
+{
+    logger.LogWarning("No PathBase configured - this may cause issues in production");
 }
 
 app.UseStaticFiles();
@@ -196,6 +214,12 @@ void AddIdentityServer(WebApplicationBuilder webApplicationBuilder)
         webApplicationBuilder.Configuration.GetSection(nameof(ServiceSettings)).Get<ServiceSettings>();
     var identitySettingsConfig =
         webApplicationBuilder.Configuration.GetSection(nameof(IdentitySettings)).Get<IdentitySettings>();
+    
+    // Log configuration for debugging
+    var logger = webApplicationBuilder.Services.BuildServiceProvider().GetRequiredService<ILogger<Program>>();
+    logger.LogInformation("ServerSettings Authority: {Authority}", serverSettings?.Authority);
+    logger.LogInformation("IdentitySettings PathBase: {PathBase}", identitySettingsConfig?.PathBase);
+    
     var _builder = webApplicationBuilder.Services.AddIdentityServer(options =>
         {
             options.Events.RaiseSuccessEvents = true;
@@ -206,7 +230,18 @@ void AddIdentityServer(WebApplicationBuilder webApplicationBuilder)
             // Configure timeout for endpoints
             options.Endpoints.EnableEndSessionEndpoint = true;
             
-            options.IssuerUri = $"{serverSettings.Authority}{identitySettingsConfig?.PathBase}";
+            // Set the correct IssuerUri for production with PathBase
+            if (!string.IsNullOrEmpty(identitySettingsConfig?.PathBase))
+            {
+                var issuerUri = $"{serverSettings.Authority}{identitySettingsConfig.PathBase}";
+                options.IssuerUri = issuerUri;
+                logger.LogInformation("Setting IssuerUri to: {IssuerUri}", issuerUri);
+            }
+            else
+            {
+                options.IssuerUri = serverSettings.Authority;
+                logger.LogInformation("Setting IssuerUri to: {IssuerUri}", serverSettings.Authority);
+            }
             //options.KeyManagement.Enabled = false;
         })
         .AddAspNetIdentity<ApplicationUser>()
@@ -214,6 +249,23 @@ void AddIdentityServer(WebApplicationBuilder webApplicationBuilder)
         .AddInMemoryApiResources(identityServerSettings.ApiResources)
         .AddInMemoryClients(identityServerSettings.Clients)
         .AddInMemoryIdentityResources(identityServerSettings.IdentityResources);
+
+    // Configure additional Identity Server options for production
+    if (!webApplicationBuilder.Environment.IsDevelopment())
+    {
+        webApplicationBuilder.Services.Configure<Duende.IdentityServer.Configuration.IdentityServerOptions>(options =>
+        {
+            // Ensure endpoints are properly configured with PathBase
+            options.Endpoints.EnableDiscoveryEndpoint = true;
+            options.Endpoints.EnableJwksEndpoint = true;
+            options.Endpoints.EnableTokenEndpoint = true;
+            options.Endpoints.EnableUserInfoEndpoint = true;
+            options.Endpoints.EnableEndSessionEndpoint = true;
+            options.Endpoints.EnableCheckSessionEndpoint = true;
+            options.Endpoints.EnableRevocationEndpoint = true;
+            options.Endpoints.EnableIntrospectionEndpoint = true;
+        });
+    }
 
     if (webApplicationBuilder.Environment.IsDevelopment())
     {
