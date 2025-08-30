@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.DataProtection;
 using MassTransit;
 using Microsoft.AspNetCore.Http.Extensions;
+using System.Collections;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -133,6 +134,16 @@ foreach (var kvp in builder.Configuration.AsEnumerable())
     }
 }
 
+// Log all environment variables for debugging
+logger.LogInformation("All environment variables:");
+foreach (var kvp in Environment.GetEnvironmentVariables().Cast<DictionaryEntry>())
+{
+    if (kvp.Key.ToString().StartsWith("IdentitySettings") || kvp.Key.ToString().StartsWith("ServiceSettings"))
+    {
+        logger.LogInformation("  {Key}: {Value}", kvp.Key, kvp.Value);
+    }
+}
+
 
 //app.Use(async (context, next) =>
 //{
@@ -169,6 +180,13 @@ if (string.IsNullOrEmpty(pathBase))
     // Try to get from environment variable directly
     pathBase = Environment.GetEnvironmentVariable("IdentitySettings__PathBase");
     logger.LogInformation("PathBase from environment variable: {PathBase}", pathBase);
+}
+
+// If still empty, use hardcoded value for production
+if (string.IsNullOrEmpty(pathBase) && !app.Environment.IsDevelopment())
+{
+    pathBase = "/identity-svc";
+    logger.LogInformation("Using hardcoded PathBase for production: {PathBase}", pathBase);
 }
 
 if (!string.IsNullOrEmpty(pathBase))
@@ -255,6 +273,13 @@ void AddIdentityServer(WebApplicationBuilder webApplicationBuilder)
             if (string.IsNullOrEmpty(pathBaseForIssuer))
             {
                 pathBaseForIssuer = Environment.GetEnvironmentVariable("IdentitySettings__PathBase");
+            }
+            
+            // If still empty, use hardcoded value for production
+            if (string.IsNullOrEmpty(pathBaseForIssuer) && !webApplicationBuilder.Environment.IsDevelopment())
+            {
+                pathBaseForIssuer = "/identity-svc";
+                logger.LogInformation("Using hardcoded PathBase for IssuerUri in production: {PathBase}", pathBaseForIssuer);
             }
             
             if (!string.IsNullOrEmpty(pathBaseForIssuer))
