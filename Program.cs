@@ -123,6 +123,16 @@ var logger = app.Services.GetRequiredService<ILogger<Program>>();
 logger.LogInformation("IdentitySettings PathBase: {PathBase}", identitySettings?.PathBase);
 logger.LogInformation("Environment: {Environment}", app.Environment.EnvironmentName);
 
+// Log all configuration sections for debugging
+logger.LogInformation("All configuration keys:");
+foreach (var kvp in builder.Configuration.AsEnumerable())
+{
+    if (kvp.Key.StartsWith("IdentitySettings") || kvp.Key.StartsWith("ServiceSettings"))
+    {
+        logger.LogInformation("  {Key}: {Value}", kvp.Key, kvp.Value);
+    }
+}
+
 
 //app.Use(async (context, next) =>
 //{
@@ -152,10 +162,19 @@ logger.LogInformation("Environment: {Environment}", app.Environment.EnvironmentN
 //});
 
 
-if (!string.IsNullOrEmpty(identitySettings?.PathBase))
+// Try to get PathBase from multiple sources
+var pathBase = identitySettings?.PathBase;
+if (string.IsNullOrEmpty(pathBase))
 {
-    logger.LogInformation("Applying PathBase: {PathBase}", identitySettings.PathBase);
-    app.UsePathBase(identitySettings.PathBase);
+    // Try to get from environment variable directly
+    pathBase = Environment.GetEnvironmentVariable("IdentitySettings__PathBase");
+    logger.LogInformation("PathBase from environment variable: {PathBase}", pathBase);
+}
+
+if (!string.IsNullOrEmpty(pathBase))
+{
+    logger.LogInformation("Applying PathBase: {PathBase}", pathBase);
+    app.UsePathBase(pathBase);
     
     // Add logging to verify PathBase is being applied
     app.Use(async (context, next) =>
@@ -232,9 +251,15 @@ void AddIdentityServer(WebApplicationBuilder webApplicationBuilder)
             options.Endpoints.EnableEndSessionEndpoint = true;
             
             // Set the correct IssuerUri for production with PathBase
-            if (!string.IsNullOrEmpty(identitySettingsConfig?.PathBase))
+            var pathBaseForIssuer = identitySettingsConfig?.PathBase;
+            if (string.IsNullOrEmpty(pathBaseForIssuer))
             {
-                var issuerUri = $"{serverSettings.Authority}{identitySettingsConfig.PathBase}";
+                pathBaseForIssuer = Environment.GetEnvironmentVariable("IdentitySettings__PathBase");
+            }
+            
+            if (!string.IsNullOrEmpty(pathBaseForIssuer))
+            {
+                var issuerUri = $"{serverSettings.Authority}{pathBaseForIssuer}";
                 options.IssuerUri = issuerUri;
                 logger.LogInformation("Setting IssuerUri to: {IssuerUri}", issuerUri);
             }

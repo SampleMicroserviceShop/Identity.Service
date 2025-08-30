@@ -3,8 +3,7 @@ Sample Microservice Shop Identity microservice.
 
 ## General Variables
 ```powershell
-$version="1.0.28"
-$contracts_version="1.0.2"
+$version="1.0.45"
 $owner="SampleMicroserviceShop"
 $gh_pat="[PAT HERE]"
 $adminPass="[PASSWORD HERE]"
@@ -27,11 +26,6 @@ dotnet nuget add source --username USERNAME --password $gh_pat --store-password-
  ## Push Package to GitHub
 ```powershell
 dotnet nuget push ..\..\packages\$owner\Identity.Service.$version.nupkg --api-key $gh_pat --source "github"
-```
-
- ## Push Contracts Package to GitHub
- ```powershell
-dotnet nuget push ..\..\packages\$owner\Identity.Contracts.$contracts_version.nupkg --api-key $gh_pat --source "github"
 ```
 
 ## Build the docker image
