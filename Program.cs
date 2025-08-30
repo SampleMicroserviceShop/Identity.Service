@@ -15,6 +15,7 @@ using Common.Library.OpenTelemetry;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.DataProtection;
 using MassTransit;
+using Microsoft.AspNetCore.Http.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -257,12 +258,10 @@ void AddIdentityServer(WebApplicationBuilder webApplicationBuilder)
         {
             // Ensure endpoints are properly configured with PathBase
             options.Endpoints.EnableDiscoveryEndpoint = true;
-            options.Endpoints.EnableJwksEndpoint = true;
             options.Endpoints.EnableTokenEndpoint = true;
             options.Endpoints.EnableUserInfoEndpoint = true;
             options.Endpoints.EnableEndSessionEndpoint = true;
             options.Endpoints.EnableCheckSessionEndpoint = true;
-            options.Endpoints.EnableRevocationEndpoint = true;
             options.Endpoints.EnableIntrospectionEndpoint = true;
         });
     }
