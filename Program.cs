@@ -80,21 +80,6 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddHealthChecks()
     .AddMongoDbHealthCheck();
 
-// Configure Kestrel timeout settings for Azure environment
-builder.WebHost.ConfigureKestrel(options =>
-{
-    // Azure Load Balancer has a 4-minute timeout, so we set KeepAlive to 3 minutes
-    options.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(3);
-    
-    // Request headers timeout - reasonable for most requests
-    options.Limits.RequestHeadersTimeout = TimeSpan.FromSeconds(30);
-    
-    // Additional Azure-optimized settings
-    options.Limits.MaxRequestBodySize = 30 * 1024 * 1024; // 30MB
-    options.Limits.MaxConcurrentConnections = 100;
-    options.Limits.MaxConcurrentUpgradedConnections = 100;
-});
-
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
@@ -119,94 +104,103 @@ app.UseHttpsRedirection();
 var identitySettings =
     builder.Configuration.GetSection(nameof(IdentitySettings)).Get<IdentitySettings>();
 
-// Log the configuration for debugging
+
 var logger = app.Services.GetRequiredService<ILogger<Program>>();
-logger.LogInformation("IdentitySettings PathBase: {PathBase}", identitySettings?.PathBase);
-logger.LogInformation("Environment: {Environment}", app.Environment.EnvironmentName);
 
-// Log all configuration sections for debugging
-logger.LogInformation("All configuration keys:");
-foreach (var kvp in builder.Configuration.AsEnumerable())
+
+app.Use(async (context, next) =>
 {
-    if (kvp.Key.StartsWith("IdentitySettings") || kvp.Key.StartsWith("ServiceSettings"))
+
+    logger.LogInformation("=== Incoming Request ===");
+
+    // Basic info
+    logger.LogInformation("Scheme: {Scheme}", context.Request.Scheme);
+    logger.LogInformation("Host: {Host}", context.Request.Host);
+    logger.LogInformation("PathBase: {PathBase}", context.Request.PathBase);
+    logger.LogInformation("Loaded PathBase from configuration: '{PathBase}'", identitySettings?.PathBase);
+    logger.LogInformation("Path: {Path}", context.Request.Path);
+    logger.LogInformation("QueryString: {QueryString}", context.Request.QueryString);
+    logger.LogInformation("Full URL: {Url}", context.Request.GetDisplayUrl());
+
+    // Headers
+    foreach (var header in context.Request.Headers)
     {
-        logger.LogInformation("  {Key}: {Value}", kvp.Key, kvp.Value);
+        logger.LogInformation("Header: {Key} = {Value}", header.Key, header.Value);
     }
-}
 
-// Log all environment variables for debugging
-logger.LogInformation("All environment variables:");
-foreach (var kvp in Environment.GetEnvironmentVariables().Cast<DictionaryEntry>())
-{
-    if (kvp.Key.ToString().StartsWith("IdentitySettings") || kvp.Key.ToString().StartsWith("ServiceSettings"))
+    // Log the configuration for debugging
+    logger.LogInformation("IdentitySettings PathBase: {PathBase}", identitySettings?.PathBase);
+    logger.LogInformation("Environment: {Environment}", app.Environment.EnvironmentName);
+
+    // Log all configuration sections for debugging
+    logger.LogInformation("All configuration keys:");
+    foreach (var kvp in builder.Configuration.AsEnumerable())
     {
-        logger.LogInformation("  {Key}: {Value}", kvp.Key, kvp.Value);
+        if (kvp.Key.StartsWith("IdentitySettings") || kvp.Key.StartsWith("ServiceSettings"))
+        {
+            logger.LogInformation("  {Key}: {Value}", kvp.Key, kvp.Value);
+        }
     }
-}
+
+    // Log all environment variables for debugging
+    logger.LogInformation("All environment variables:");
+    foreach (var kvp in Environment.GetEnvironmentVariables().Cast<DictionaryEntry>())
+    {
+        if (kvp.Key.ToString().StartsWith("IdentitySettings") || kvp.Key.ToString().StartsWith("ServiceSettings"))
+        {
+            logger.LogInformation("  {Key}: {Value}", kvp.Key, kvp.Value);
+        }
+    }
+
+    // ��� �� UsePathBase
+    await next();
+
+    logger.LogInformation("=== End of Request ===");
+});
 
 
-//app.Use(async (context, next) =>
+//// Try to get PathBase from multiple sources
+//var pathBase = identitySettings?.PathBase;
+//if (string.IsNullOrEmpty(pathBase))
 //{
-//    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+//    // Try to get from environment variable directly
+//    pathBase = Environment.GetEnvironmentVariable("IdentitySettings__PathBase");
+//    logger.LogInformation("PathBase from environment variable: {PathBase}", pathBase);
+//}
 
-//    logger.LogInformation("=== Incoming Request ===");
+//// If still empty, use hardcoded value for production
+//if (string.IsNullOrEmpty(pathBase) && !app.Environment.IsDevelopment())
+//{
+//    pathBase = "/identity-svc";
+//    logger.LogInformation("Using hardcoded PathBase for production: {PathBase}", pathBase);
+//}
 
-//    // Basic info
-//    logger.LogInformation("Scheme: {Scheme}", context.Request.Scheme);
-//    logger.LogInformation("Host: {Host}", context.Request.Host);
-//    logger.LogInformation("PathBase: {PathBase}", context.Request.PathBase);
-//    logger.LogInformation("Loaded PathBase from configuration: '{PathBase}'", identitySettings?.PathBase);
-//    logger.LogInformation("Path: {Path}", context.Request.Path);
-//    logger.LogInformation("QueryString: {QueryString}", context.Request.QueryString);
-//    logger.LogInformation("Full URL: {Url}", context.Request.GetDisplayUrl());
+//if (!string.IsNullOrEmpty(pathBase))
+//{
+//    logger.LogInformation("Applying PathBase: {PathBase}", pathBase);
+//    app.UsePathBase(pathBase);
 
-//    // Headers
-//    foreach (var header in context.Request.Headers)
+//    // Add logging to verify PathBase is being applied
+//    app.Use(async (context, next) =>
 //    {
-//        logger.LogInformation("Header: {Key} = {Value}", header.Key, header.Value);
-//    }
+//        logger.LogInformation("Request PathBase: {RequestPathBase}", context.Request.PathBase);
+//        logger.LogInformation("Request Path: {RequestPath}", context.Request.Path);
+//        logger.LogInformation("Full URL: {FullUrl}", context.Request.GetDisplayUrl());
+//        await next();
+//    });
+//}
+//else
+//{
+//    logger.LogWarning("No PathBase configured - this may cause issues in production");
+//}
 
-//    // ��� �� UsePathBase
-//    await next();
-
-//    logger.LogInformation("=== End of Request ===");
-//});
-
-
-// Try to get PathBase from multiple sources
-var pathBase = identitySettings?.PathBase;
-if (string.IsNullOrEmpty(pathBase))
+app.Use((context, next) =>
 {
-    // Try to get from environment variable directly
-    pathBase = Environment.GetEnvironmentVariable("IdentitySettings__PathBase");
-    logger.LogInformation("PathBase from environment variable: {PathBase}", pathBase);
-}
-
-// If still empty, use hardcoded value for production
-if (string.IsNullOrEmpty(pathBase) && !app.Environment.IsDevelopment())
-{
-    pathBase = "/identity-svc";
-    logger.LogInformation("Using hardcoded PathBase for production: {PathBase}", pathBase);
-}
-
-if (!string.IsNullOrEmpty(pathBase))
-{
-    logger.LogInformation("Applying PathBase: {PathBase}", pathBase);
-    app.UsePathBase(pathBase);
-    
-    // Add logging to verify PathBase is being applied
-    app.Use(async (context, next) =>
-    {
-        logger.LogInformation("Request PathBase: {RequestPathBase}", context.Request.PathBase);
-        logger.LogInformation("Request Path: {RequestPath}", context.Request.Path);
-        logger.LogInformation("Full URL: {FullUrl}", context.Request.GetDisplayUrl());
-        await next();
-    });
-}
-else
-{
-    logger.LogWarning("No PathBase configured - this may cause issues in production");
-}
+    var identitySettings = builder.Configuration.GetSection(nameof(IdentitySettings))
+        .Get<IdentitySettings>();
+    context.Request.PathBase = new PathString(identitySettings.PathBase);
+    return next();
+});
 
 app.UseStaticFiles();
 
