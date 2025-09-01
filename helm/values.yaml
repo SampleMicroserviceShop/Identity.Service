@@ -2,13 +2,13 @@ microserviceName: "identity"
 
 image:
   repository: microshop.azurecr.io/identity.service
-  tag: 1.0.48
+  tag: 1.0.47
 
 envVariables:
   IdentitySettings__PathBase : /identity-svc
   IdentitySettings__CertificateCerFilePath : "/certificates/certificate.crt"
   IdentitySettings__CertificateKeyFilePath : "/certificates/certificate.key"
-  ServiceSettings__Authority : https://microshop.westus2.cloudapp.azure.com/identity-svc
+  ServiceSettings__Authority : https://microshop.westus2.cloudapp.azure.com
   IdentityServerSettings__Clients__0__RedirectUris__0 : "https://microshop.westus2.cloudapp.azure.com/authentication/login-callback"
   IdentityServerSettings__Clients__0__RedirectUris__1 : "urn:ietf:wg:oauth:2.0:oob"
   IdentityServerSettings__Clients__1__RedirectUris__0 : "https://microshop.westus2.cloudapp.azure.com/authentication/login-callback"

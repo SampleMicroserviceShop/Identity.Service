@@ -136,11 +136,11 @@ helm install "$namespace-service" .\helm -f .\helm\values.yaml -n $namespace
 
 ## Install the helm chart using microservice helm chart package
 ```powershell
+$chartVersion="0.1.4"
 $helmUser=[guid]::Empty.Guid
 $helmPassword=$(az acr login --name $appname --expose-token --output tsv --query accessToken)
 $env:HELM_EXPERIMENTAL_OCI=1
 helm registry login "$appname.azurecr.io" --username $helmUser --password $helmPassword
-$chartVersion="0.1.0"
 helm upgrade "$namespace-service" oci://$appname.azurecr.io/helm/microservice --version $chartVersion -f .\helm\values.yaml -n $namespace --install
 ```
 useful commands:
